@@ -1,4 +1,5 @@
 {
+    "name": "taylornetwork/class-scanner",
     "autoload": {
         "psr-4": {
             "Violet\\ClassScanner\\": "src/"
