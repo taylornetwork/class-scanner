@@ -1,5 +1,9 @@
 # PHP File Class Scanner
 
+> This is a fork of the original package that I've added a `"name"` to and added to Packagist so it can actually be installed via Composer.
+> Intall via `composer require taylornetwork/class-scanner`
+> If the original owner adds a name to the composer.json and uploads to packagist, this fork will be removed, unless I end up making changes.
+
 The Class Scanner library provides a convenient interface for finding classes
 defined in PHP source code. The purpose of this library is to be able to find
 classes within a class hierarchy without the need of actually executing the code
