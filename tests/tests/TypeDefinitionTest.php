@@ -1,8 +1,9 @@
 <?php
 
-namespace Violet\ClassScanner;
+namespace Violet\ClassScanner\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Violet\ClassScanner\TypeDefinition;
 use Violet\ClassScanner\Exception\UnexpectedNodeException;
 
 /**

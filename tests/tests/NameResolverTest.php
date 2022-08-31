@@ -1,11 +1,12 @@
 <?php
 
-namespace Violet\ClassScanner;
+namespace Violet\ClassScanner\Tests;
 
-use PhpParser\ErrorHandler\Throwing;
-use PhpParser\NameContext;
 use PhpParser\Node\Name;
+use PhpParser\NameContext;
 use PHPUnit\Framework\TestCase;
+use PhpParser\ErrorHandler\Throwing;
+use Violet\ClassScanner\NameResolver;
 use Violet\ClassScanner\Exception\UnexpectedNodeException;
 
 /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace Violet\ClassScanner\Tests;
+namespace Violet\ClassScanner\TestHelpers;
 
 /**
  * ClassLoader.

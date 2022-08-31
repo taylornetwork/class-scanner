@@ -1,20 +1,22 @@
 <?php
 
-namespace Violet\ClassScanner;
+namespace Violet\ClassScanner\Tests;
 
-use PHPUnit\Framework\Constraint\IsIdentical;
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Util\InvalidArgumentHelper;
-use Sample\Space\SecondTopClass;
 use Sample\Space\SubClass;
 use Sample\Space\TopClass;
+use PHPUnit\Framework\TestCase;
+use Sample\Space\SecondTopClass;
+use Violet\ClassScanner\Scanner;
+use PHPUnit\Util\InvalidArgumentHelper;
+use Violet\ClassScanner\TypeDefinition;
+use PHPUnit\Framework\Constraint\IsIdentical;
+use Violet\ClassScanner\TestHelpers\ClassLoader;
+use Violet\ClassScanner\TestHelpers\SampleTrait;
+use Violet\ClassScanner\TestHelpers\SampleException;
+use Violet\ClassScanner\Exception\ParsingException;
 use Violet\ClassScanner\Exception\ClassScannerException;
 use Violet\ClassScanner\Exception\FileNotFoundException;
-use Violet\ClassScanner\Exception\ParsingException;
 use Violet\ClassScanner\Exception\UndefinedClassException;
-use Violet\ClassScanner\Tests\ClassLoader;
-use Violet\ClassScanner\Tests\SampleException;
-use Violet\ClassScanner\Tests\SampleTrait;
 
 /**
  * ScannerTest.

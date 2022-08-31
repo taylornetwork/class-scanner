@@ -1,12 +1,14 @@
 <?php
 
-namespace Violet\ClassScanner;
+namespace Violet\ClassScanner\Tests;
 
-use PhpParser\ErrorHandler\Throwing;
 use PhpParser\NameContext;
 use PhpParser\Node\Stmt\Class_;
-use PhpParser\Node\Stmt\ClassLike;
 use PHPUnit\Framework\TestCase;
+use PhpParser\Node\Stmt\ClassLike;
+use PhpParser\ErrorHandler\Throwing;
+use Violet\ClassScanner\NameResolver;
+use Violet\ClassScanner\DefinitionFactory;
 use Violet\ClassScanner\Exception\UnexpectedNodeException;
 
 /**
