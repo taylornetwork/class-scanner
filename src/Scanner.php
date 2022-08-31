@@ -34,6 +34,8 @@ class Scanner
     /** @var bool[] */
     private $scannedFiles;
 
+    protected int $maxRecurseLevels = -1;
+
     public function __construct()
     {
         $this->ignore = false;
@@ -124,14 +126,168 @@ class Scanner
         return $results;
     }
 
-    public function scanFile(string $filename): self
+    /**
+     * @return int
+     */
+    public function getMaxRecurseLevels(): int
     {
-        return $this->scan([$filename]);
+        return $this->maxRecurseLevels;
     }
 
-    public function scanDirectory(string $directory): self
+    /**
+     * @param  int  $levels
+     * @return $this
+     */
+    public function setMaxRecurseLevels(int $levels): self
     {
-        return $this->scan(new \DirectoryIterator($directory));
+        $this->maxRecurseLevels = $levels;
+        return $this;
+    }
+
+    /**
+     * @param  string|\SplFileInfo  $filename
+     * @return $this
+     * @throws ParsingException
+     */
+    public function scanFile(string|\SplFileInfo $filename): self
+    {
+        $this->parseFile($filename);
+        return $this;
+    }
+
+    /**
+     * @param  array<string|\SplFileInfo>  $files
+     * @return $this
+     * @throws ParsingException
+     */
+    public function scanFiles(array $files): self
+    {
+        foreach($files as $file) {
+            $this->scanFile($file);
+        }
+        return $this;
+    }
+
+    /**
+     * @param  string    $directory
+     * @param  bool      $recursive
+     * @param  int|null  $maxRecurseLevels
+     * @return $this
+     * @throws ParsingException
+     */
+    public function scanDirectory(string $directory, bool $recursive = false, ?int $maxRecurseLevels = null): self
+    {
+        $maxRecurseLevels ??= $this->getMaxRecurseLevels();
+        foreach(new \DirectoryIterator($directory) as $item) {
+            if($item->isFile()) {
+                $this->scanFile($item->getFileInfo());
+                continue;
+            }
+
+            if($item->isDir() && $recursive) {
+                $this->enterDirectory($item, $maxRecurseLevels);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param  \DirectoryIterator  $directory
+     * @param  int                 $levels
+     * @return void
+     * @throws ParsingException
+     */
+    private function enterDirectory(\DirectoryIterator $directory, int $levels): void
+    {
+        $name = $directory->getBasename();
+
+        if($name === '.' || $name === '..' || $levels === 0) {
+            return;
+        }
+
+        $this->scanDirectory(
+            directory: $directory->getPathname(),
+            recursive: true,
+            maxRecurseLevels: $levels > 0 ? $levels - 1 : $levels
+        );
+    }
+
+    /**
+     * @param  array<string>  $directories
+     * @param  bool           $recursive
+     * @param  int|null       $maxRecurseLevels
+     * @return $this
+     * @throws ParsingException
+     */
+    public function scanDirectories(array $directories, bool $recursive = false, ?int $maxRecurseLevels = null): self
+    {
+        $maxRecurseLevels ??= $this->getMaxRecurseLevels();
+        foreach($directories as $directory) {
+            $this->scanDirectory($directory, $recursive, $maxRecurseLevels);
+        }
+        return $this;
+    }
+
+    /**
+     * @param  string    $directory
+     * @param  int|null  $maxRecurseLevels
+     * @return $this
+     * @throws ParsingException
+     */
+    public function scanDirectoryRecursive(string $directory, ?int $maxRecurseLevels = null): self
+    {
+        $maxRecurseLevels ??= $this->getMaxRecurseLevels();
+        $this->scanDirectory($directory, true, $maxRecurseLevels);
+        return $this;
+    }
+
+    /**
+     * @param  array     $directories
+     * @param  int|null  $maxRecurseLevels
+     * @return $this
+     * @throws ParsingException
+     */
+    public function scanDirectoriesRecursive(array $directories, ?int $maxRecurseLevels = null): self
+    {
+        $maxRecurseLevels ??= $this->getMaxRecurseLevels();
+        $this->scanDirectories($directories, true, $maxRecurseLevels);
+        return $this;
+    }
+
+    /**
+     * @param  mixed  $item
+     * @return \SplFileInfo
+     */
+    protected function getSplFileInfo(mixed $item): \SplFileInfo
+    {
+        return $item instanceof \SplFileInfo ? $item : new \SplFileInfo((string) $item);
+    }
+
+    /**
+     * @param  string|\SplFileInfo  $file
+     * @return void
+     * @throws ParsingException
+     */
+    protected function parseFile(string|\SplFileInfo $file): void
+    {
+        $file = $this->getSplFileInfo($file);
+        if($file->isFile()) {
+            $real = $file->getRealPath();
+
+            if (isset($this->scannedFiles[$real])) {
+                return;
+            }
+
+            $this->collector->setCurrentFile($real);
+
+            try {
+                $this->parse(file_get_contents($real));
+                $this->scannedFiles[$real] = true;
+            } finally {
+                $this->collector->setCurrentFile(null);
+            }
+        }
     }
 
     /**
@@ -143,25 +299,10 @@ class Scanner
     public function scan(iterable $files): self
     {
         foreach ($files as $file) {
-            if (!$file instanceof \SplFileInfo) {
-                $file = new \SplFileInfo((string) $file);
-            }
+            $file = $this->getSplFileInfo($file);
 
             if ($file->isFile()) {
-                $real = $file->getRealPath();
-
-                if (isset($this->scannedFiles[$real])) {
-                    continue;
-                }
-
-                $this->collector->setCurrentFile($real);
-
-                try {
-                    $this->parse(file_get_contents($real));
-                    $this->scannedFiles[$real] = true;
-                } finally {
-                    $this->collector->setCurrentFile(null);
-                }
+                $this->parseFile($file);
             } elseif (! $file->isDir() && ! $file->isLink()) {
                 throw new FileNotFoundException("The file path '$file' does not exist");
             }
